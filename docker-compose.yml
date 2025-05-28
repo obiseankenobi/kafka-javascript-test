@@ -1,0 +1,43 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  node-kafka-tester:
+    image: ubuntu:22.04
+    container_name: node-kafka-tester
+    volumes:
+      - .:/app
+    working_dir: /app
+    tty: true
+    command: >
+      bash -c "
+        apt-get update &&
+        apt-get install -y curl gnupg ca-certificates software-properties-common &&
+        rm -rf /var/lib/apt/lists/*
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - &&
+        apt-get install -y nodejs &&
+        rm -rf /var/lib/apt/lists/* &&
+        echo 'Container ready' &&
+        tail -f /dev/null
+      "
